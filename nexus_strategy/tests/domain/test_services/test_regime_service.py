@@ -104,13 +104,14 @@ class TestDetectMicro:
 
     def test_detect_micro_squeeze(self, service: RegimeService) -> None:
         """BB_width<0.02 + ADX<15 -> MICRO_SQUEEZE."""
+        # Use RSI outside 40-60 range and ROC >= 0.5 to suppress RANGING/CHOPPY
         ind_5m = {
             "EMA_9": 100.0,
             "EMA_21": 100.0,
             "EMA_50": 100.0,
             "ADX_14": 12.0,
-            "RSI_14": 50.0,
-            "ROC_9": 0.1,
+            "RSI_14": 38.0,
+            "ROC_9": 0.6,
             "CMF_20": 0.0,
             "BB_width_20": 0.015,
             "BB_upper_20": 101.0,
@@ -120,7 +121,7 @@ class TestDetectMicro:
             "Volume_SMA_20": 1.0,
             "OBV": 1000.0,
         }
-        ind_15m = {"RSI_14": 50.0, "ADX_14": 12.0}
+        ind_15m = {"RSI_14": 38.0, "ADX_14": 12.0}
         result = service.detect_micro(ind_5m, ind_15m)
         assert result == MicroRegime.MICRO_SQUEEZE
 
@@ -448,7 +449,7 @@ class TestDetectFull:
         """Rapid regime changes should be smoothed (held for min_candles)."""
         config.get.return_value = 3  # need 3 candles before switching
 
-        # First call: establishes initial regime
+        # First call: establishes initial regime (bullish)
         bull_ind = self._make_all_indicators(
             micro_bull=True, mid_bull=True, macro_bull=True,
         )
@@ -456,12 +457,11 @@ class TestDetectFull:
         r1 = service.detect_full(bull_ind, sentinel)
         first_regime = r1.synthesized
 
-        # Second call: switch to bearish, but duration=1 < min_candles=3 -> should hold
-        bear_ind = self._make_all_indicators(
-            micro_bear=True, mid_bear=True, macro_bear=True,
-        )
-        r2 = service.detect_full(bear_ind, {"risk_score": 90, "fear_greed": 15})
-        # Should still hold the previous regime because duration < min_candles
+        # Second call: switch to ranging (not panic, so smoothing applies)
+        # Use neutral indicators that will not trigger PANIC
+        neutral_ind = self._make_all_indicators()  # all neutral/ranging
+        r2 = service.detect_full(neutral_ind, {"risk_score": 50, "fear_greed": 50})
+        # Should still hold the previous regime because duration (1) < min_candles (3)
         assert r2.synthesized == first_regime
 
     def test_detect_full_panic_instant(self, service: RegimeService, config: MagicMock) -> None:
