@@ -1,0 +1,25 @@
+[general]
+max_open_trades = 4
+min_confidence = 70
+min_consensus = 4
+
+[risk]
+max_exposure = 0.40
+kelly_fraction = 0.25
+max_single_pair = 0.15
+
+[dca]
+enabled = false
+
+[exit]
+doom_stop_default = 0.05
+trailing_atr_multiplier = 2.0
+
+[strategy_weights]
+mean_reversion = 1.5
+trend_following = 0.3
+momentum_breakout = 0.2
+volatility_squeeze = 0.5
+volume_profile = 1.0
+divergence = 1.5
+market_structure = 0.5

@@ -1,0 +1,14 @@
+[general]
+max_open_trades = 6
+min_confidence = 60
+min_consensus = 3
+
+[risk]
+max_exposure = 0.65
+kelly_fraction = 0.30
+
+[dca]
+max_dca_count = 2
+
+[exit]
+doom_stop_default = 0.06
