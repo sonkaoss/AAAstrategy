@@ -137,13 +137,20 @@ class TestEmergencyLayer:
     def test_doom_stop_strong_bull(self) -> None:
         engine = ExitEngine(_make_config())
         ms = _make_market_state(synthesized=SynthesizedRegime.REGIME_STRONG_BULL)
-        # -15% threshold; pnl at -15 should trigger
+        # -15% threshold.  At pnl -9.5% the doom stop must NOT fire.
+        result_no = engine.evaluate(
+            "BTC/USDT", ms, 50000.0, -9.5, 5, [], _default_portfolio()
+        )
+        assert result_no is None  # -9.5 > -15, no doom stop; -9.5 > -10, no Black Swan
+
+        # At exactly -15% the doom stop fires (urgency 95), but Black Swan also
+        # fires (urgency 100) and wins.  Verify emergency layer, urgency 100.
         result = engine.evaluate(
             "BTC/USDT", ms, 50000.0, -15.0, 5, [], _default_portfolio()
         )
         assert result is not None
-        assert result.urgency == 95
-        assert "-15.0%" in result.reason
+        assert result.exit_layer == ExitLayer.EMERGENCY
+        assert result.urgency == 100  # Black Swan wins over doom stop
 
     def test_doom_stop_moderate_bear(self) -> None:
         engine = ExitEngine(_make_config())

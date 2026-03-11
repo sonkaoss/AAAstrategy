@@ -1,7 +1,7 @@
 """Tests for the PositionSizer Kelly Criterion implementation."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -34,7 +34,7 @@ def _make_composite_regime(synthesized: SynthesizedRegime) -> CompositeRegime:
         recommended_strategies=["momentum"],
         risk_multiplier=1.0,
         max_position_size=0.15,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
 
 
@@ -45,7 +45,7 @@ def _make_market_state(
     if sentinel is None:
         sentinel = {"risk_score": 0}
     return MarketState(
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
         indicators={},
         composite_indicators={},
         regime=_make_composite_regime(synthesized),
@@ -87,7 +87,7 @@ def _make_signal_bundle(
         reasoning="test",
         sentinel_context={},
         expiry_candles=5,
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
 
 
